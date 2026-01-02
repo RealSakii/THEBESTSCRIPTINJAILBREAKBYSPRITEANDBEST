@@ -92,80 +92,82 @@ end)
 
 --// Simple Aimbot + FOV Circle (LocalScript)
 
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+local UIS = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
+local localPlayer = Players.LocalPlayer
+local mouse = localPlayer:GetMouse()
 
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local targetLock = false
+local lockedPlayer = nil
 
--- SETTINGS
-local AIMBOT_ENABLED = true
-local FOV_RADIUS = 120
-local AIM_PART = "UpperTorso"
-local TEAM_CHECK = false
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
 
--- FOV Circle
-local FOV = Drawing.new("Circle")
-FOV.Color = Color3.fromRGB(0, 200, 255)
-FOV.Thickness = 2
-FOV.NumSides = 100
-FOV.Radius = FOV_RADIUS
-FOV.Filled = false
-FOV.Visible = true
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local character = player.Character
+            local torso = character:FindFirstChild("HumanoidRootPart")
+            local screenPos = workspace.CurrentCamera:WorldToScreenPoint(torso.Position)
+            local mousePos = Vector2.new(mouse.X, mouse.Y)
+            local distance = (mousePos - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
 
--- Toggle Aimbot
-UserInputService.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.KeyCode == Enum.KeyCode.Q then
-		AIMBOT_ENABLED = not AIMBOT_ENABLED
-	end
-end)
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestPlayer = player
+            end
+        end
+    end
 
--- หาเป้าที่ใกล้เมาส์ที่สุด
-local function GetClosestPlayer()
-	local closest = nil
-	local shortest = FOV_RADIUS
-
-	for _, player in pairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer and player.Character then
-			if TEAM_CHECK and player.Team == LocalPlayer.Team then continue end
-
-			local part = player.Character:FindFirstChild(AIM_PART)
-			local hum = player.Character:FindFirstChild("Humanoid")
-
-			if part and hum and hum.Health > 0 then
-				local pos, visible = Camera:WorldToViewportPoint(part.Position)
-				if visible then
-					local dist = (Vector2.new(pos.X, pos.Y) -
-						Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-
-					if dist < shortest then
-						shortest = dist
-						closest = part
-					end
-				end
-			end
-		end
-	end
-	return closest
+    return closestPlayer
 end
 
--- Update
-RunService.RenderStepped:Connect(function()
-	-- อัปเดตวง FOV
-	FOV.Position = Vector2.new(Mouse.X, Mouse.Y)
+local function lockOntoPlayer()
+    local closestPlayer = getClosestPlayer()
 
-	if AIMBOT_ENABLED then
-		local target = GetClosestPlayer()
-		if target then
-			Camera.CFrame = CFrame.new(
-				Camera.CFrame.Position,
-				target.Position
-			)
-		end
-	end
+    if closestPlayer and closestPlayer.Character then
+        local torso = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if torso then
+            mouse.TargetFilter = torso
+            lockedPlayer = closestPlayer
+            targetLock = true
+        end
+    end
+end
+
+
+local function updateLock()
+    if lockedPlayer and lockedPlayer.Character then
+        local torso = lockedPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if torso then
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, torso.Position)
+        end
+    end
+end
+
+
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Q then
+        if not targetLock then
+            lockOntoPlayer()
+        else
+            mouse.TargetFilter = nil
+            lockedPlayer = nil
+            targetLock = false
+        end
+    end
 end)
 
+RunService.RenderStepped:Connect(function()
+    if targetLock then
+        updateLock()
+    end
+end)
+
+
 --
+
