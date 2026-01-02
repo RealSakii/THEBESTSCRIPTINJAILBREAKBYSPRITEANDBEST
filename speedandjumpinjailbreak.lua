@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
-local humanoid
+local humanoid = player.Character.Humanoid
 local infiniteJump = false
 
 local NORMAL_SPEED = 16
@@ -39,4 +39,5 @@ UserInputService.InputEnded:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.X then
         humanoid.WalkSpeed = NORMAL_SPEED
     end
+
 end)
