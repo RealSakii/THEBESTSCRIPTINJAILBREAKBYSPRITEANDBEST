@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
-local humanoid = player.Character.Humanoid
+local humanoid
 local infiniteJump = false
 
 local NORMAL_SPEED = 16
@@ -19,11 +19,6 @@ player.CharacterAdded:Connect(setupCharacter)
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
 
-    -- วิ่งเร็ว
-    if input.KeyCode == Enum.KeyCode.P then
-        humanoid.WalkSpeed = RUN_SPEED
-    end
-
     -- เปิด/ปิด กระโดดไม่จำกัด
     if input.KeyCode == Enum.KeyCode.B then
         infiniteJump = not infiniteJump
@@ -33,13 +28,6 @@ UserInputService.InputBegan:Connect(function(input, gp)
     if infiniteJump and input.KeyCode == Enum.KeyCode.Space then
         humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
     end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.X then
-        humanoid.WalkSpeed = NORMAL_SPEED
-    end
-
 end)
 
 --Speed
@@ -74,3 +62,4 @@ end)
     end
  
     walkspeedmouse.KeyDown:connect(x_walkspeed)
+
