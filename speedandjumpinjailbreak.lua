@@ -89,3 +89,83 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		end
 	end
 end)
+
+--// Simple Aimbot + FOV Circle (LocalScript)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- SETTINGS
+local AIMBOT_ENABLED = true
+local FOV_RADIUS = 120
+local AIM_PART = "UpperTorso"
+local TEAM_CHECK = false
+
+-- FOV Circle
+local FOV = Drawing.new("Circle")
+FOV.Color = Color3.fromRGB(0, 200, 255)
+FOV.Thickness = 2
+FOV.NumSides = 100
+FOV.Radius = FOV_RADIUS
+FOV.Filled = false
+FOV.Visible = true
+
+-- Toggle Aimbot
+UserInputService.InputBegan:Connect(function(input, gpe)
+	if gpe then return end
+	if input.KeyCode == Enum.KeyCode.Q then
+		AIMBOT_ENABLED = not AIMBOT_ENABLED
+	end
+end)
+
+-- หาเป้าที่ใกล้เมาส์ที่สุด
+local function GetClosestPlayer()
+	local closest = nil
+	local shortest = FOV_RADIUS
+
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and player.Character then
+			if TEAM_CHECK and player.Team == LocalPlayer.Team then continue end
+
+			local part = player.Character:FindFirstChild(AIM_PART)
+			local hum = player.Character:FindFirstChild("Humanoid")
+
+			if part and hum and hum.Health > 0 then
+				local pos, visible = Camera:WorldToViewportPoint(part.Position)
+				if visible then
+					local dist = (Vector2.new(pos.X, pos.Y) -
+						Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+
+					if dist < shortest then
+						shortest = dist
+						closest = part
+					end
+				end
+			end
+		end
+	end
+	return closest
+end
+
+-- Update
+RunService.RenderStepped:Connect(function()
+	-- อัปเดตวง FOV
+	FOV.Position = Vector2.new(Mouse.X, Mouse.Y)
+
+	if AIMBOT_ENABLED then
+		local target = GetClosestPlayer()
+		if target then
+			Camera.CFrame = CFrame.new(
+				Camera.CFrame.Position,
+				target.Position
+			)
+		end
+	end
+end)
+
+--
