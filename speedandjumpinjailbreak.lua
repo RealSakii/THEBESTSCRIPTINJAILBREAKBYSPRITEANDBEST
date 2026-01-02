@@ -63,3 +63,29 @@ end)
  
     walkspeedmouse.KeyDown:connect(x_walkspeed)
 
+
+--teleport
+
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- ตั้งค่าความไกลสูงสุดที่วาร์ปได้ (ถ้าต้องการจำกัดระยะ)
+local MAX_DISTANCE = 1000 
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	-- ตรวจสอบว่าไม่ได้กำลังพิมพ์ในช่อง Chat และกดปุ่ม 
+	if not gameProcessed and input.KeyCode == Enum.KeyCode.T then
+		local character = player.Character
+		if character and character:FindFirstChild("HumanoidRootPart") then
+
+			-- ตรวจสอบว่าเมาส์ชี้ไปที่ตำแหน่งใดในโลก (Vector3)
+			local targetPosition = mouse.Hit.Position
+
+			-- ย้ายตำแหน่งตัวละคร (บวกความสูงขึ้น 3 หน่วยเพื่อไม่ให้จมดิน)
+			character:SetPrimaryPartCFrame(CFrame.new(targetPosition + Vector3.new(0, 3, 0)))
+		end
+	end
+end)
