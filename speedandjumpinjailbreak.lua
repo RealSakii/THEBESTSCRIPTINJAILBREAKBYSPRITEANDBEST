@@ -20,7 +20,7 @@ UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
 
     -- วิ่งเร็ว
-    if input.KeyCode == Enum.KeyCode.X then
+    if input.KeyCode == Enum.KeyCode.P then
         humanoid.WalkSpeed = RUN_SPEED
     end
 
@@ -41,3 +41,36 @@ UserInputService.InputEnded:Connect(function(input)
     end
 
 end)
+
+--Speed
+
+  local walkspeedplayer = game:GetService("Players").LocalPlayer
+    local walkspeedmouse = walkspeedplayer:GetMouse()
+ 
+    local walkspeedenabled = false
+ 
+    function x_walkspeed(key)
+        if (key == "x") then
+            if walkspeedenabled == false then
+                _G.WS = 150;
+                local Humanoid = game:GetService("Players").LocalPlayer.Character.Humanoid;
+                Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+                Humanoid.WalkSpeed = _G.WS;
+                end)
+                Humanoid.WalkSpeed = _G.WS;
+ 
+                walkspeedenabled = true
+            elseif walkspeedenabled == true then
+                _G.WS = 20;
+                local Humanoid = game:GetService("Players").LocalPlayer.Character.Humanoid;
+                Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+                Humanoid.WalkSpeed = _G.WS;
+                end)
+                Humanoid.WalkSpeed = _G.WS;
+ 
+                walkspeedenabled = false
+            end
+        end
+    end
+ 
+    walkspeedmouse.KeyDown:connect(x_walkspeed)
